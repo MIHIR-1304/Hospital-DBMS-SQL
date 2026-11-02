@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital DBMS &amp; Relational Analytics Schema Explorer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #030712; color: #f1f5f9; font-family: sans-serif; }
+    .glass { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-gradient-to-b from-[#030712] via-[#09152e] to-[#02050e]">
+  <header class="border-b border-white/10 bg-[#061026]/80 backdrop-blur-xl px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg">
+          <i class="fa-solid fa-hospital text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-extrabold text-white">Hospital DBMS &amp; SQL Analytics</h1>
+          <p class="text-xs text-gray-400">3NF Normalized Relational Database Architecture</p>
+        </div>
+      </div>
+      <a href="https://github.com/MIHIR-1304/Hospital-DBMS-SQL" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-xs font-semibold">
+        <i class="fa-brands fa-github"></i>
+        <span>GitHub Repo</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl mx-auto w-full p-6 space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="glass rounded-xl p-4">
+        <h3 class="text-xs uppercase font-bold text-cyan-400">3NF Normalization</h3>
+        <p class="text-xl font-bold text-white mt-1">7 Relational Tables</p>
+        <span class="text-[11px] text-gray-400">Zero data redundancy &amp; foreign keys</span>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <h3 class="text-xs uppercase font-bold text-purple-400">Stored Triggers</h3>
+        <p class="text-xl font-bold text-white mt-1">Cascading Sync</p>
+        <span class="text-[11px] text-gray-400">Automated bed status &amp; discharge</span>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <h3 class="text-xs uppercase font-bold text-emerald-400">Query Optimization</h3>
+        <p class="text-xl font-bold text-white mt-1">B-Tree Indexes</p>
+        <span class="text-[11px] text-gray-400">Composite index on medical histories</span>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 space-y-4">
+      <h2 class="text-sm font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-code text-cyan-400"></i>
+        <span>Relational Schema Definition (DDL)</span>
+      </h2>
+      <pre class="p-4 rounded-xl bg-black/60 border border-white/10 text-xs font-mono text-cyan-300 overflow-x-auto leading-relaxed">
+CREATE TABLE patients (
+    patient_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    blood_group VARCHAR(5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE admissions (
+    admission_id SERIAL PRIMARY KEY,
+    patient_id INT REFERENCES patients(patient_id) ON DELETE CASCADE,
+    room_id INT REFERENCES rooms(room_id),
+    admission_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+      </pre>
+    </div>
+  </main>
+</body>
+</html>
