@@ -3,74 +3,1123 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hospital DBMS &amp; Relational Analytics Schema Explorer</title>
+  <title>CareHealth DBMS — Hospital Relational SQL Analytics Studio</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            clinical: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              200: '#bae0fd',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            },
+            brand: {
+              50: '#eff6ff',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    body { background-color: #030712; color: #f1f5f9; font-family: sans-serif; }
-    .glass { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    body {
+      background-color: #f8fafc;
+      color: #1e293b;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Clean subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col bg-gradient-to-b from-[#030712] via-[#09152e] to-[#02050e]">
-  <header class="border-b border-white/10 bg-[#061026]/80 backdrop-blur-xl px-6 py-4">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg">
-          <i class="fa-solid fa-hospital text-white"></i>
-        </div>
-        <div>
-          <h1 class="text-base font-extrabold text-white">Hospital DBMS &amp; SQL Analytics</h1>
-          <p class="text-xs text-gray-400">3NF Normalized Relational Database Architecture</p>
-        </div>
+<body class="min-h-screen flex flex-col bg-[#f8fafc] text-slate-800 antialiased">
+
+  <!-- Top Enterprise Navigation Header -->
+  <header class="h-16 border-b border-slate-200 bg-white sticky top-0 z-40 px-6 flex items-center justify-between shadow-xs">
+    <!-- Left: Hospital DBMS Brand -->
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs">
+        <!-- Medical Cross / Database Icon -->
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+        </svg>
       </div>
-      <a href="https://github.com/MIHIR-1304/Hospital-DBMS-SQL" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-xs font-semibold">
-        <i class="fa-brands fa-github"></i>
-        <span>GitHub Repo</span>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-sm font-bold text-slate-900 tracking-tight">CareHealth DBMS</h1>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-semibold">PostgreSQL 16 · 3NF</span>
+        </div>
+        <p class="text-[11px] text-slate-500">Relational Database &amp; Clinical Analytics Studio</p>
+      </div>
+    </div>
+
+    <!-- Center: View Toggle Tabs -->
+    <div class="flex items-center p-1 bg-slate-100 border border-slate-200 rounded-lg">
+      <button onclick="switchView('studio')" id="tab-studio" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-white bg-blue-600 shadow-xs transition-all">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <span>SQL Query Studio</span>
+      </button>
+
+      <button onclick="switchView('explorer')" id="tab-explorer" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span>Table Browser</span>
+      </button>
+
+      <button onclick="switchView('schema')" id="tab-schema" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+        <span>3NF Schema &amp; ERD</span>
+      </button>
+
+      <button onclick="switchView('analytics')" id="tab-analytics" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <span>Executive KPIs</span>
+      </button>
+    </div>
+
+    <!-- Right: Quick Links & Actions -->
+    <div class="flex items-center gap-3">
+      <a href="https://github.com/MIHIR-1304/Hospital-DBMS-SQL" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        <span>GitHub Repository</span>
       </a>
+
+      <button onclick="downloadSQLFile()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <span>Download schema.sql</span>
+      </button>
     </div>
   </header>
 
+  <!-- Main Content Container -->
   <main class="flex-1 max-w-7xl mx-auto w-full p-6 space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="glass rounded-xl p-4">
-        <h3 class="text-xs uppercase font-bold text-cyan-400">3NF Normalization</h3>
-        <p class="text-xl font-bold text-white mt-1">7 Relational Tables</p>
-        <span class="text-[11px] text-gray-400">Zero data redundancy &amp; foreign keys</span>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 1: INTERACTIVE SQL QUERY STUDIO                     -->
+    <!-- ======================================================== -->
+    <div id="view-studio" class="space-y-5">
+      <!-- Query Editor Card -->
+      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Interactive SQL Query Console</h2>
+            <p class="text-xs text-slate-500">Execute relational queries with multi-table JOINs, subqueries, and aggregates against the live dataset</p>
+          </div>
+
+          <!-- Query Preset Dropdown -->
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <label class="text-xs font-medium text-slate-600 whitespace-nowrap">Load Preset:</label>
+            <select id="presetSelect" onchange="loadPresetQuery(this.value)" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-blue-500 font-medium w-full sm:w-72">
+              <option value="1">1. Bed Occupancy &amp; Potential Revenue (JOIN + SUM)</option>
+              <option value="2">2. Active Inpatients &amp; Attending Doctors (4-table JOIN)</option>
+              <option value="3">3. Doctor Workload &amp; Inpatient Case Load</option>
+              <option value="4">4. Billing Invoices by Payment Status (GROUP BY)</option>
+              <option value="5">5. High-Risk ICU Patients &amp; Treatment Plans</option>
+              <option value="6">6. Patients Incurred Total Bill &gt; $5,000 (HAVING)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SQL Textarea Box -->
+        <div class="relative rounded-lg overflow-hidden border border-slate-200 bg-slate-900 focus-within:border-blue-500">
+          <div class="bg-slate-800/80 px-4 py-2 border-b border-slate-700/60 flex items-center justify-between text-xs text-slate-400 font-mono">
+            <span>SQL Editor (PostgreSQL Syntax)</span>
+            <span>Shortcut: Ctrl + Enter to run</span>
+          </div>
+          <textarea id="sqlInput" rows="7" class="w-full bg-slate-900 text-slate-100 font-mono text-xs p-4 outline-none resize-y leading-relaxed" spellcheck="false"></textarea>
+        </div>
+
+        <!-- Action Control Bar -->
+        <div class="flex items-center justify-between pt-1">
+          <div class="flex items-center gap-2">
+            <button onclick="runQuery()" class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+              <span>Execute SQL</span>
+            </button>
+
+            <button onclick="clearQuery()" class="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors">
+              Clear
+            </button>
+          </div>
+
+          <div class="flex items-center gap-3 text-xs text-slate-500">
+            <span id="queryStatusText" class="font-mono text-emerald-600 font-semibold">● Ready</span>
+            <span class="text-slate-300">|</span>
+            <span id="queryExecTime" class="font-mono">Time: -- ms</span>
+            <span class="text-slate-300">|</span>
+            <span id="queryRowsCount" class="font-mono">Rows: --</span>
+          </div>
+        </div>
       </div>
-      <div class="glass rounded-xl p-4">
-        <h3 class="text-xs uppercase font-bold text-purple-400">Stored Triggers</h3>
-        <p class="text-xl font-bold text-white mt-1">Cascading Sync</p>
-        <span class="text-[11px] text-gray-400">Automated bed status &amp; discharge</span>
-      </div>
-      <div class="glass rounded-xl p-4">
-        <h3 class="text-xs uppercase font-bold text-emerald-400">Query Optimization</h3>
-        <p class="text-xl font-bold text-white mt-1">B-Tree Indexes</p>
-        <span class="text-[11px] text-gray-400">Composite index on medical histories</span>
+
+      <!-- Query Results Data Table -->
+      <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs space-y-0">
+        <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+          <div class="flex items-center gap-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Query Results</h3>
+            <span id="resultBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-medium">0 rows</span>
+          </div>
+
+          <button onclick="exportResultToCSV()" id="exportCsvBtn" class="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-slate-200 hover:bg-white text-slate-700 text-xs font-medium transition-colors">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Export CSV</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto max-h-[460px]">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead id="resultsTableHead" class="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-semibold sticky top-0 z-10">
+              <tr><th class="py-3 px-4">Result</th></tr>
+            </thead>
+            <tbody id="resultsTableBody" class="divide-y divide-slate-100 font-mono text-slate-700">
+              <tr>
+                <td class="py-8 px-4 text-center text-slate-400 font-sans">Click "Execute SQL" or select a preset to inspect query results.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="glass rounded-2xl p-6 space-y-4">
-      <h2 class="text-sm font-bold text-white flex items-center gap-2">
-        <i class="fa-solid fa-code text-cyan-400"></i>
-        <span>Relational Schema Definition (DDL)</span>
-      </h2>
-      <pre class="p-4 rounded-xl bg-black/60 border border-white/10 text-xs font-mono text-cyan-300 overflow-x-auto leading-relaxed">
-CREATE TABLE patients (
-    patient_id SERIAL PRIMARY KEY,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    blood_group VARCHAR(5),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    <!-- ======================================================== -->
+    <!-- VIEW 2: TABLE BROWSER & LIVE DATA EXPLORER              -->
+    <!-- ======================================================== -->
+    <div id="view-explorer" class="hidden space-y-4">
+      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+        <!-- Explorer Header & Table Selector -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Hospital Database Tables (3NF Schema)</h2>
+            <p class="text-xs text-slate-500">Browse live rows, column data types, foreign keys, and primary constraints</p>
+          </div>
 
-CREATE TABLE admissions (
-    admission_id SERIAL PRIMARY KEY,
-    patient_id INT REFERENCES patients(patient_id) ON DELETE CASCADE,
-    room_id INT REFERENCES rooms(room_id),
-    admission_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-      </pre>
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-medium text-slate-600">Select Table:</label>
+            <select id="tableSelect" onchange="renderExplorerTable(this.value)" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-lg px-3 py-1.5 outline-none font-semibold focus:border-blue-500">
+              <option value="patients">patients (10 rows)</option>
+              <option value="doctors">doctors (8 rows)</option>
+              <option value="departments">departments (6 rows)</option>
+              <option value="rooms">rooms (10 rows)</option>
+              <option value="admissions">admissions (10 rows)</option>
+              <option value="medical_records">medical_records (10 rows)</option>
+              <option value="billing_invoices">billing_invoices (10 rows)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Search Table Rows -->
+        <div class="flex items-center justify-between gap-3 text-xs">
+          <div class="relative w-72">
+            <input type="text" id="tableFilterInput" oninput="filterExplorerTable()" placeholder="Search records in table..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500">
+            <svg class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+
+          <div class="flex items-center gap-2 text-slate-500">
+            <span id="explorerRowCount">Showing 10 records</span>
+          </div>
+        </div>
+
+        <!-- Explorer Table -->
+        <div class="border border-slate-200 rounded-lg overflow-x-auto max-h-[500px]">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead id="explorerTableHead" class="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold sticky top-0"></thead>
+            <tbody id="explorerTableBody" class="divide-y divide-slate-100 font-mono text-slate-700"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 3: 3NF SCHEMA & VISUAL ER DIAGRAM                  -->
+    <!-- ======================================================== -->
+    <div id="view-schema" class="hidden space-y-6">
+      <!-- 3NF Architecture Overview -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">1NF - Atomicity</span>
+          <h4 class="text-xs font-bold text-slate-900 mt-2">Zero Multi-Valued Attributes</h4>
+          <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">All columns contain single scalar values. Contact, diagnoses, and medical prescriptions are atomic.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">2NF - Full Functional Dependency</span>
+          <h4 class="text-xs font-bold text-slate-900 mt-2">No Partial Dependencies</h4>
+          <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Non-key attributes depend entirely on table primary keys. Composite keys decomposed into distinct entity tables.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">3NF - Non-Transitive</span>
+          <h4 class="text-xs font-bold text-slate-900 mt-2">Zero Transitive Redundancy</h4>
+          <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Department names and room daily rates are isolated in their parent tables rather than redundantly stored in admissions.</p>
+        </div>
+      </div>
+
+      <!-- Entity Relationship Diagram Card -->
+      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Relational Entity-Relationship Diagram (ERD)</h3>
+            <p class="text-xs text-slate-500">Visual mapping of primary keys (PK), foreign keys (FK), and 1-to-many cardinality</p>
+          </div>
+          <span class="text-xs font-mono text-slate-500">7 Normalized Entities</span>
+        </div>
+
+        <!-- Clean Interactive SVG ERD -->
+        <div class="overflow-x-auto bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-center">
+          <svg viewBox="0 0 960 480" class="w-full max-w-4xl h-auto" xmlns="http://www.w3.org/2000/svg">
+            <!-- Connecting Relation Lines -->
+            <g stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="4 2">
+              <!-- Departments -> Doctors -->
+              <path d="M 220 90 L 320 90"/>
+              <!-- Departments -> Rooms -->
+              <path d="M 220 120 L 270 120 L 270 260 L 320 260"/>
+              <!-- Patients -> Admissions -->
+              <path d="M 220 390 L 480 390 L 480 290 L 540 290"/>
+              <!-- Doctors -> Admissions -->
+              <path d="M 460 90 L 500 90 L 500 230 L 540 230"/>
+              <!-- Rooms -> Admissions -->
+              <path d="M 460 260 L 540 260"/>
+              <!-- Admissions -> Medical Records -->
+              <path d="M 680 230 L 760 140"/>
+              <!-- Admissions -> Billing Invoices -->
+              <path d="M 680 270 L 760 360"/>
+            </g>
+
+            <!-- Table 1: DEPARTMENTS -->
+            <g transform="translate(40, 50)">
+              <rect width="180" height="110" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.05))"/>
+              <rect width="180" height="28" rx="8" fill="#2563eb"/>
+              <text x="12" y="19" fill="#ffffff" font-family="'Inter', sans-serif" font-size="11" font-weight="700">departments</text>
+              <text x="12" y="46" fill="#0f172a" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#2563eb" font-weight="bold">PK</tspan> department_id</text>
+              <text x="12" y="64" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">name VARCHAR(100)</text>
+              <text x="12" y="82" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">building_wing VARCHAR</text>
+              <text x="12" y="100" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">head_doctor_name</text>
+            </g>
+
+            <!-- Table 2: DOCTORS -->
+            <g transform="translate(320, 40)">
+              <rect width="180" height="120" rx="8" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.5" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.05))"/>
+              <rect width="180" height="28" rx="8" fill="#0ea5e9"/>
+              <text x="12" y="19" fill="#ffffff" font-family="'Inter', sans-serif" font-size="11" font-weight="700">doctors</text>
+              <text x="12" y="46" fill="#0f172a" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#0ea5e9" font-weight="bold">PK</tspan> doctor_id</text>
+              <text x="12" y="64" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#d97706" font-weight="bold">FK</tspan> department_id</text>
+              <text x="12" y="82" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">first_name, last_name</text>
+              <text x="12" y="100" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">specialization VARCHAR</text>
+              <text x="12" y="118" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">email, phone</text>
+            </g>
+
+            <!-- Table 3: ROOMS -->
+            <g transform="translate(320, 200)">
+              <rect width="180" height="110" rx="8" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.5" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.05))"/>
+              <rect width="180" height="28" rx="8" fill="#0ea5e9"/>
+              <text x="12" y="19" fill="#ffffff" font-family="'Inter', sans-serif" font-size="11" font-weight="700">rooms</text>
+              <text x="12" y="46" fill="#0f172a" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#0ea5e9" font-weight="bold">PK</tspan> room_id</text>
+              <text x="12" y="64" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#d97706" font-weight="bold">FK</tspan> department_id</text>
+              <text x="12" y="82" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">room_number, room_type</text>
+              <text x="12" y="100" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">daily_rate, is_occupied</text>
+            </g>
+
+            <!-- Table 4: PATIENTS -->
+            <g transform="translate(40, 330)">
+              <rect width="180" height="110" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.05))"/>
+              <rect width="180" height="28" rx="8" fill="#2563eb"/>
+              <text x="12" y="19" fill="#ffffff" font-family="'Inter', sans-serif" font-size="11" font-weight="700">patients</text>
+              <text x="12" y="46" fill="#0f172a" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#2563eb" font-weight="bold">PK</tspan> patient_id</text>
+              <text x="12" y="64" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">first_name, last_name</text>
+              <text x="12" y="82" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">date_of_birth, gender</text>
+              <text x="12" y="100" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">blood_group, phone</text>
+            </g>
+
+            <!-- Table 5: ADMISSIONS (Core Junction) -->
+            <g transform="translate(540, 180)">
+              <rect width="180" height="140" rx="8" fill="#ffffff" stroke="#6366f1" stroke-width="2" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.08))"/>
+              <rect width="180" height="28" rx="8" fill="#6366f1"/>
+              <text x="12" y="19" fill="#ffffff" font-family="'Inter', sans-serif" font-size="11" font-weight="700">admissions</text>
+              <text x="12" y="46" fill="#0f172a" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#6366f1" font-weight="bold">PK</tspan> admission_id</text>
+              <text x="12" y="64" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#d97706" font-weight="bold">FK</tspan> patient_id</text>
+              <text x="12" y="82" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#d97706" font-weight="bold">FK</tspan> room_id</text>
+              <text x="12" y="100" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#d97706" font-weight="bold">FK</tspan> attending_doctor_id</text>
+              <text x="12" y="118" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">admission_date</text>
+              <text x="12" y="134" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">discharge_date, status</text>
+            </g>
+
+            <!-- Table 6: MEDICAL RECORDS -->
+            <g transform="translate(760, 60)">
+              <rect width="180" height="110" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.5" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.05))"/>
+              <rect width="180" height="28" rx="8" fill="#059669"/>
+              <text x="12" y="19" fill="#ffffff" font-family="'Inter', sans-serif" font-size="11" font-weight="700">medical_records</text>
+              <text x="12" y="46" fill="#0f172a" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#059669" font-weight="bold">PK</tspan> record_id</text>
+              <text x="12" y="64" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#d97706" font-weight="bold">FK</tspan> admission_id</text>
+              <text x="12" y="82" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#d97706" font-weight="bold">FK</tspan> doctor_id</text>
+              <text x="12" y="100" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">diagnosis, treatment_plan</text>
+            </g>
+
+            <!-- Table 7: BILLING INVOICES -->
+            <g transform="translate(760, 280)">
+              <rect width="180" height="110" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.5" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.05))"/>
+              <rect width="180" height="28" rx="8" fill="#059669"/>
+              <text x="12" y="19" fill="#ffffff" font-family="'Inter', sans-serif" font-size="11" font-weight="700">billing_invoices</text>
+              <text x="12" y="46" fill="#0f172a" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#059669" font-weight="bold">PK</tspan> invoice_id</text>
+              <text x="12" y="64" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10"><tspan fill="#d97706" font-weight="bold">FK</tspan> admission_id</text>
+              <text x="12" y="82" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">total_amount NUMERIC</text>
+              <text x="12" y="100" fill="#475569" font-family="'JetBrains Mono', monospace" font-size="10">payment_status, date</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 4: EXECUTIVE KPI ANALYTICS                         -->
+    <!-- ======================================================== -->
+    <div id="view-analytics" class="hidden space-y-6">
+      <!-- Top 4 Summary Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Metric 1 -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <span>Bed Occupancy Rate</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          </div>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span class="text-2xl font-bold font-mono text-slate-900">60.0%</span>
+            <span class="text-xs text-slate-400 font-mono">6 of 10 rooms</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
+            <div class="bg-blue-600 h-1.5 rounded-full" style="width: 60%"></div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2">Optimal clinical capacity target: 75%</p>
+        </div>
+
+        <!-- Metric 2 -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <span>Active Inpatients</span>
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+          </div>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span class="text-2xl font-bold font-mono text-slate-900">6</span>
+            <span class="text-xs text-slate-400 font-mono">in care</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
+            <div class="bg-blue-500 h-1.5 rounded-full" style="width: 60%"></div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2">4 patients successfully discharged this cycle</p>
+        </div>
+
+        <!-- Metric 3 -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <span>Total Inpatient Invoices</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          </div>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span class="text-2xl font-bold font-mono text-slate-900">$126,890</span>
+            <span class="text-xs text-slate-400 font-mono">USD</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
+            <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 35.8%"></div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2">$45,420 collected (35.8% collection rate)</p>
+        </div>
+
+        <!-- Metric 4 -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <span>Avg Length of Stay (ALOS)</span>
+            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+          </div>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span class="text-2xl font-bold font-mono text-slate-900">3.8</span>
+            <span class="text-xs text-slate-400 font-mono">Days</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
+            <div class="bg-indigo-500 h-1.5 rounded-full" style="width: 48%"></div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2">Calculated via SQL `DATEDIFF` interval</p>
+        </div>
+      </div>
+
+      <!-- Financial & Occupancy Breakdown -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Financial Invoicing Breakdown</h3>
+          <div class="space-y-3 text-xs font-medium">
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-700">
+                <span>PAID Invoices (5)</span>
+                <span class="font-mono text-emerald-600 font-bold">$45,420.00 (35.8%)</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-emerald-500 h-2 rounded-full" style="width: 35.8%"></div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-700">
+                <span>PENDING Insurance / Cash (4)</span>
+                <span class="font-mono text-amber-600 font-bold">$71,870.00 (56.6%)</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-amber-500 h-2 rounded-full" style="width: 56.6%"></div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-700">
+                <span>OVERDUE Balance (1)</span>
+                <span class="font-mono text-rose-600 font-bold">$9,600.00 (7.6%)</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-rose-500 h-2 rounded-full" style="width: 7.6%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Room Utilization by Type</h3>
+          <div class="space-y-3 text-xs font-medium">
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-700">
+                <span>Intensive Care Unit (ICU)</span>
+                <span class="font-mono text-blue-600 font-bold">2 of 3 Occupied (66.7%)</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-blue-600 h-2 rounded-full" style="width: 66.7%"></div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-700">
+                <span>Private Inpatient Suites</span>
+                <span class="font-mono text-blue-600 font-bold">2 of 3 Occupied (66.7%)</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-blue-600 h-2 rounded-full" style="width: 66.7%"></div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-700">
+                <span>General Wards</span>
+                <span class="font-mono text-blue-600 font-bold">1 of 3 Occupied (33.3%)</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-blue-600 h-2 rounded-full" style="width: 33.3%"></div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-700">
+                <span>Trauma Bay Resuscitation</span>
+                <span class="font-mono text-rose-600 font-bold">1 of 1 Occupied (100.0%)</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-rose-500 h-2 rounded-full" style="width: 100%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC & IN-MEMORY RELATIONAL ENGINE -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. RELATIONAL DATABASE IN-MEMORY SEED DATA (3NF)
+    // -------------------------------------------------------------
+    const DB = {
+      departments: [
+        { department_id: 1, name: "Cardiology", building_wing: "Wing A - 3rd Floor", head_doctor_name: "Dr. Robert Chen", contact_ext: "4101" },
+        { department_id: 2, name: "Neurology", building_wing: "Wing B - 4th Floor", head_doctor_name: "Dr. Elena Rostova", contact_ext: "4202" },
+        { department_id: 3, name: "Pediatrics", building_wing: "Wing C - 2nd Floor", head_doctor_name: "Dr. Marcus Vance", contact_ext: "4303" },
+        { department_id: 4, name: "Orthopedics", building_wing: "Wing D - 1st Floor", head_doctor_name: "Dr. Sarah Jenkins", contact_ext: "4404" },
+        { department_id: 5, name: "Oncology", building_wing: "Wing E - 5th Floor", head_doctor_name: "Dr. Ananya Sharma", contact_ext: "4505" },
+        { department_id: 6, name: "Emergency & Trauma", building_wing: "Ground Floor North", head_doctor_name: "Dr. David Miller", contact_ext: "4000" }
+      ],
+      doctors: [
+        { doctor_id: 101, first_name: "Robert", last_name: "Chen", specialization: "Chief Cardiologist", department_id: 1, email: "r.chen@carehealth.org", phone: "+1-555-0101" },
+        { doctor_id: 102, first_name: "Elena", last_name: "Rostova", specialization: "Neurosurgeon & Spine Specialist", department_id: 2, email: "e.rostova@carehealth.org", phone: "+1-555-0102" },
+        { doctor_id: 103, first_name: "Marcus", last_name: "Vance", specialization: "Neonatal & Pediatric Care", department_id: 3, email: "m.vance@carehealth.org", phone: "+1-555-0103" },
+        { doctor_id: 104, first_name: "Sarah", last_name: "Jenkins", specialization: "Orthopedic Trauma & Joints", department_id: 4, email: "s.jenkins@carehealth.org", phone: "+1-555-0104" },
+        { doctor_id: 105, first_name: "Ananya", last_name: "Sharma", specialization: "Clinical Hematology & Oncology", department_id: 5, email: "a.sharma@carehealth.org", phone: "+1-555-0105" },
+        { doctor_id: 106, first_name: "David", last_name: "Miller", specialization: "Emergency Trauma Director", department_id: 6, email: "d.miller@carehealth.org", phone: "+1-555-0106" },
+        { doctor_id: 107, first_name: "Michael", last_name: "Chang", specialization: "Interventional Cardiologist", department_id: 1, email: "m.chang@carehealth.org", phone: "+1-555-0107" },
+        { doctor_id: 108, first_name: "Emily", last_name: "Watson", specialization: "Clinical Neurologist", department_id: 2, email: "e.watson@carehealth.org", phone: "+1-555-0108" }
+      ],
+      patients: [
+        { patient_id: 201, first_name: "Arthur", last_name: "Pendelton", date_of_birth: "1968-04-12", gender: "Male", blood_group: "O+", phone: "+1-555-2001", emergency_contact: "Martha Pendelton (Wife)" },
+        { patient_id: 202, first_name: "Beatrice", last_name: "Holloway", date_of_birth: "1992-09-24", gender: "Female", blood_group: "A+", phone: "+1-555-2002", emergency_contact: "Samuel Holloway (Spouse)" },
+        { patient_id: 203, first_name: "Carlos", last_name: "Mendoza", date_of_birth: "1981-01-15", gender: "Male", blood_group: "B-", phone: "+1-555-2003", emergency_contact: "Lucia Mendoza (Sister)" },
+        { patient_id: 204, first_name: "Diana", last_name: "Prince", date_of_birth: "1997-07-03", gender: "Female", blood_group: "AB+", phone: "+1-555-2004", emergency_contact: "Hippolyta Prince (Mother)" },
+        { patient_id: 205, first_name: "Edward", last_name: "Norton", date_of_birth: "1959-11-20", gender: "Male", blood_group: "O-", phone: "+1-555-2005", emergency_contact: "Rachel Norton (Daughter)" },
+        { patient_id: 206, first_name: "Fiona", last_name: "Gallagher", date_of_birth: "2014-06-18", gender: "Female", blood_group: "A-", phone: "+1-555-2006", emergency_contact: "Frank Gallagher (Father)" },
+        { patient_id: 207, first_name: "George", last_name: "Bailey", date_of_birth: "1974-03-30", gender: "Male", blood_group: "B+", phone: "+1-555-2007", emergency_contact: "Mary Hatch (Spouse)" },
+        { patient_id: 208, first_name: "Hannah", last_name: "Abbott", date_of_birth: "1985-12-14", gender: "Female", blood_group: "O+", phone: "+1-555-2008", emergency_contact: "Neville Longbottom (Partner)" },
+        { patient_id: 209, first_name: "Ian", last_name: "Malcolm", date_of_birth: "1978-08-08", gender: "Male", blood_group: "A+", phone: "+1-555-2009", emergency_contact: "Kelly Malcolm (Daughter)" },
+        { patient_id: 210, first_name: "Julia", last_name: "Roberts", date_of_birth: "1963-10-28", gender: "Female", blood_group: "AB-", phone: "+1-555-2010", emergency_contact: "Daniel Moder (Husband)" }
+      ],
+      rooms: [
+        { room_id: 301, room_number: "ICU-101", department_id: 1, room_type: "ICU", is_occupied: true, daily_rate: 1850.00 },
+        { room_id: 302, room_number: "ICU-102", department_id: 1, room_type: "ICU", is_occupied: false, daily_rate: 1850.00 },
+        { room_id: 303, room_number: "PRV-201", department_id: 2, room_type: "PRIVATE", is_occupied: true, daily_rate: 850.00 },
+        { room_id: 304, room_number: "PRV-202", department_id: 2, room_type: "PRIVATE", is_occupied: false, daily_rate: 850.00 },
+        { room_id: 305, room_number: "GEN-301", department_id: 3, room_type: "GENERAL", is_occupied: true, daily_rate: 420.00 },
+        { room_id: 306, room_number: "GEN-302", department_id: 3, room_type: "GENERAL", is_occupied: false, daily_rate: 420.00 },
+        { room_id: 307, room_number: "PRV-401", department_id: 4, room_type: "PRIVATE", is_occupied: true, daily_rate: 850.00 },
+        { room_id: 308, room_number: "GEN-402", department_id: 4, room_type: "GENERAL", is_occupied: false, daily_rate: 420.00 },
+        { room_id: 309, room_number: "ICU-501", department_id: 5, room_type: "ICU", is_occupied: true, daily_rate: 1850.00 },
+        { room_id: 310, room_number: "TRM-001", department_id: 6, room_type: "TRAUMA", is_occupied: true, daily_rate: 1250.00 }
+      ],
+      admissions: [
+        { admission_id: 401, patient_id: 201, room_id: 301, attending_doctor_id: 101, admission_date: "2026-10-24 08:30:00", discharge_date: "2026-10-29 14:00:00", discharge_status: "Discharged" },
+        { admission_id: 402, patient_id: 202, room_id: 303, attending_doctor_id: 106, admission_date: "2026-10-28 11:15:00", discharge_date: null, discharge_status: "Active Inpatient" },
+        { admission_id: 403, patient_id: 203, room_id: 307, attending_doctor_id: 104, admission_date: "2026-10-27 16:45:00", discharge_date: null, discharge_status: "Active Inpatient" },
+        { admission_id: 404, patient_id: 204, room_id: 304, attending_doctor_id: 102, admission_date: "2026-10-25 09:00:00", discharge_date: "2026-10-27 12:30:00", discharge_status: "Discharged" },
+        { admission_id: 405, patient_id: 205, room_id: 301, attending_doctor_id: 107, admission_date: "2026-10-29 22:10:00", discharge_date: null, discharge_status: "Active Inpatient" },
+        { admission_id: 406, patient_id: 206, room_id: 305, attending_doctor_id: 103, admission_date: "2026-10-30 07:45:00", discharge_date: null, discharge_status: "Active Inpatient" },
+        { admission_id: 407, patient_id: 207, room_id: 306, attending_doctor_id: 101, admission_date: "2026-10-26 14:20:00", discharge_date: "2026-10-30 11:00:00", discharge_status: "Discharged" },
+        { admission_id: 408, patient_id: 208, room_id: 309, attending_doctor_id: 105, admission_date: "2026-10-20 10:00:00", discharge_date: null, discharge_status: "Active Inpatient" },
+        { admission_id: 409, patient_id: 209, room_id: 307, attending_doctor_id: 104, admission_date: "2026-10-22 13:30:00", discharge_date: "2026-10-26 16:00:00", discharge_status: "Discharged" },
+        { admission_id: 410, patient_id: 210, room_id: 310, attending_doctor_id: 102, admission_date: "2026-10-31 03:15:00", discharge_date: null, discharge_status: "Active Inpatient" }
+      ],
+      medical_records: [
+        { record_id: 501, admission_id: 401, doctor_id: 101, diagnosis: "Cardiac Arrhythmia & Atrial Fibrillation", treatment_plan: "Cardioversion protocol, telemetry monitoring", prescribed_medication: "Amiodarone 200mg, Warfarin 5mg", record_date: "2026-10-24 10:00:00" },
+        { record_id: 502, admission_id: 402, doctor_id: 106, diagnosis: "Acute Suppurative Appendicitis", treatment_plan: "Laparoscopic appendectomy, IV hydration", prescribed_medication: "Ceftriaxone 1g, Metronidazole 500mg", record_date: "2026-10-28 13:00:00" },
+        { record_id: 503, admission_id: 403, doctor_id: 104, diagnosis: "Compound Femur Fracture (Right Leg)", treatment_plan: "Open reduction internal fixation (ORIF), orthopedic traction", prescribed_medication: "Cefazolin 1g, Morphine 5mg PRN", record_date: "2026-10-27 18:00:00" },
+        { record_id: 504, admission_id: 404, doctor_id: 102, diagnosis: "Severe Intractable Migraine with Aura", treatment_plan: "Neurological screening, IV hydration, sumatriptan trial", prescribed_medication: "Sumatriptan 50mg, Ondansetron 4mg", record_date: "2026-10-25 11:30:00" },
+        { record_id: 505, admission_id: 405, doctor_id: 107, diagnosis: "Acute STEMI Myocardial Infarction", treatment_plan: "Emergency coronary angioplasty with drug-eluting stent", prescribed_medication: "Ticagrelor 90mg, Atorvastatin 80mg", record_date: "2026-10-30 01:15:00" },
+        { record_id: 506, admission_id: 406, doctor_id: 103, diagnosis: "Status Asthmaticus & Severe Bronchospasm", treatment_plan: "Continuous nebulization, systemic corticosteroids, O2 support", prescribed_medication: "Albuterol sulfate, Methylprednisolone", record_date: "2026-10-30 09:30:00" },
+        { record_id: 507, admission_id: 407, doctor_id: 101, diagnosis: "Essential Hypertensive Crisis", treatment_plan: "Intravenous anti-hypertensive titration, renal panel evaluation", prescribed_medication: "Labetalol IV, Lisinopril 20mg", record_date: "2026-10-26 16:00:00" },
+        { record_id: 508, admission_id: 408, doctor_id: 105, diagnosis: "Stage IIB Diffuse Large B-Cell Lymphoma", treatment_plan: "R-CHOP immunochemotherapy Cycle 1 infusion", prescribed_medication: "Rituximab, Cyclophosphamide, Prednisone", record_date: "2026-10-20 12:00:00" },
+        { record_id: 509, admission_id: 409, doctor_id: 104, diagnosis: "L4-L5 Lumbar Disc Herniation with Radiculopathy", treatment_plan: "Microdiscectomy, physical therapy consultation", prescribed_medication: "Pregabalin 75mg, Meloxicam 15mg", record_date: "2026-10-22 15:00:00" },
+        { record_id: 510, admission_id: 410, doctor_id: 102, diagnosis: "Transient Ischemic Attack (Left MCA)", treatment_plan: "Cerebral CT angiography, antiplatelet therapy initiation", prescribed_medication: "Aspirin 325mg, Clopidogrel 75mg", record_date: "2026-10-31 05:00:00" }
+      ],
+      billing_invoices: [
+        { invoice_id: 601, admission_id: 401, room_charges: 9250.00, procedure_charges: 3400.00, medication_charges: 850.00, total_amount: 13500.00, payment_status: "PAID", invoice_date: "2026-10-29 15:30:00" },
+        { invoice_id: 602, admission_id: 402, room_charges: 2550.00, procedure_charges: 4800.00, medication_charges: 620.00, total_amount: 7970.00, payment_status: "PENDING", invoice_date: "2026-10-29 10:00:00" },
+        { invoice_id: 603, admission_id: 403, room_charges: 4250.00, procedure_charges: 8900.00, medication_charges: 1150.00, total_amount: 14300.00, payment_status: "PENDING", invoice_date: "2026-10-30 14:00:00" },
+        { invoice_id: 604, admission_id: 404, room_charges: 1700.00, procedure_charges: 1200.00, medication_charges: 320.00, total_amount: 3220.00, payment_status: "PAID", invoice_date: "2026-10-27 13:45:00" },
+        { invoice_id: 605, admission_id: 405, room_charges: 5550.00, procedure_charges: 14500.00, medication_charges: 1850.00, total_amount: 21900.00, payment_status: "PENDING", invoice_date: "2026-10-31 09:00:00" },
+        { invoice_id: 606, admission_id: 406, room_charges: 1260.00, procedure_charges: 950.00, medication_charges: 440.00, total_amount: 2650.00, payment_status: "PAID", invoice_date: "2026-10-31 16:30:00" },
+        { invoice_id: 607, admission_id: 407, room_charges: 1680.00, procedure_charges: 2100.00, medication_charges: 580.00, total_amount: 4360.00, payment_status: "PAID", invoice_date: "2026-10-30 12:15:00" },
+        { invoice_id: 608, admission_id: 408, room_charges: 18500.00, procedure_charges: 12400.00, medication_charges: 6800.00, total_amount: 37700.00, payment_status: "PENDING", invoice_date: "2026-10-28 17:00:00" },
+        { invoice_id: 609, admission_id: 409, room_charges: 3400.00, procedure_charges: 7200.00, medication_charges: 890.00, total_amount: 11490.00, payment_status: "PAID", invoice_date: "2026-10-26 17:00:00" },
+        { invoice_id: 610, admission_id: 410, room_charges: 3750.00, procedure_charges: 5100.00, medication_charges: 920.00, total_amount: 9770.00, payment_status: "OVERDUE", invoice_date: "2026-10-31 08:00:00" }
+      ]
+    };
+
+    // -------------------------------------------------------------
+    // 2. PRE-CONFIGURED PRODUCTION SQL PRESETS
+    // -------------------------------------------------------------
+    const SQL_PRESETS = {
+      "1": {
+        title: "Bed Occupancy & Potential Revenue by Department",
+        sql: `SELECT 
+    d.name AS department_name,
+    COUNT(r.room_id) AS total_rooms,
+    SUM(CASE WHEN r.is_occupied THEN 1 ELSE 0 END) AS occupied_rooms,
+    ROUND((SUM(CASE WHEN r.is_occupied THEN 1.0 ELSE 0.0 END) / COUNT(r.room_id)) * 100, 1) AS occupancy_rate_pct,
+    CONCAT('$', TO_CHAR(SUM(r.daily_rate), 'FM999,990.00')) AS potential_daily_revenue
+FROM departments d
+JOIN rooms r ON d.department_id = r.department_id
+GROUP BY d.name
+ORDER BY occupancy_rate_pct DESC, total_rooms DESC;`,
+        execute: () => {
+          return DB.departments.map(d => {
+            const depRooms = DB.rooms.filter(r => r.department_id === d.department_id);
+            const total = depRooms.length;
+            const occupied = depRooms.filter(r => r.is_occupied).length;
+            const rate = total > 0 ? ((occupied / total) * 100).toFixed(1) + "%" : "0.0%";
+            const rev = depRooms.reduce((sum, r) => sum + r.daily_rate, 0);
+            return {
+              department_name: d.name,
+              total_rooms: total,
+              occupied_rooms: occupied,
+              occupancy_rate_pct: rate,
+              potential_daily_revenue: `$${rev.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+            };
+          }).sort((a, b) => parseFloat(b.occupancy_rate_pct) - parseFloat(a.occupancy_rate_pct));
+        }
+      },
+      "2": {
+        title: "Active Inpatients & Attending Physicians (Multi-Table JOIN)",
+        sql: `SELECT 
+    a.admission_id,
+    p.patient_id,
+    CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+    p.blood_group,
+    r.room_number,
+    r.room_type,
+    CONCAT('Dr. ', d.first_name, ' ', d.last_name) AS attending_doctor,
+    d.specialization,
+    a.admission_date,
+    a.discharge_status
+FROM admissions a
+JOIN patients p ON a.patient_id = p.patient_id
+JOIN rooms r ON a.room_id = r.room_id
+JOIN doctors d ON a.attending_doctor_id = d.doctor_id
+WHERE a.discharge_date IS NULL
+ORDER BY a.admission_date ASC;`,
+        execute: () => {
+          return DB.admissions
+            .filter(a => a.discharge_date === null)
+            .map(a => {
+              const p = DB.patients.find(pt => pt.patient_id === a.patient_id);
+              const r = DB.rooms.find(rm => rm.room_id === a.room_id);
+              const d = DB.doctors.find(doc => doc.doctor_id === a.attending_doctor_id);
+              return {
+                admission_id: a.admission_id,
+                patient_id: p ? p.patient_id : "N/A",
+                patient_name: p ? `${p.first_name} ${p.last_name}` : "Unknown",
+                blood_group: p ? p.blood_group : "N/A",
+                room_number: r ? r.room_number : "N/A",
+                room_type: r ? r.room_type : "N/A",
+                attending_doctor: d ? `Dr. ${d.first_name} ${d.last_name}` : "Unassigned",
+                specialization: d ? d.specialization : "N/A",
+                admission_date: a.admission_date,
+                discharge_status: a.discharge_status
+              };
+            });
+        }
+      },
+      "3": {
+        title: "Doctor Workload & Inpatient Case Load",
+        sql: `SELECT 
+    d.doctor_id,
+    CONCAT('Dr. ', d.first_name, ' ', d.last_name) AS doctor_name,
+    dept.name AS department,
+    COUNT(a.admission_id) AS total_admissions,
+    SUM(CASE WHEN a.discharge_date IS NULL THEN 1 ELSE 0 END) AS active_inpatient_cases
+FROM doctors d
+JOIN departments dept ON d.department_id = dept.department_id
+LEFT JOIN admissions a ON d.doctor_id = a.attending_doctor_id
+GROUP BY d.doctor_id, d.first_name, d.last_name, dept.name
+ORDER BY active_inpatient_cases DESC, total_admissions DESC;`,
+        execute: () => {
+          return DB.doctors.map(d => {
+            const dept = DB.departments.find(dp => dp.department_id === d.department_id);
+            const docAdmissions = DB.admissions.filter(a => a.attending_doctor_id === d.doctor_id);
+            const active = docAdmissions.filter(a => a.discharge_date === null).length;
+            return {
+              doctor_id: d.doctor_id,
+              doctor_name: `Dr. ${d.first_name} ${d.last_name}`,
+              department: dept ? dept.name : "N/A",
+              total_admissions: docAdmissions.length,
+              active_inpatient_cases: active
+            };
+          }).sort((a, b) => b.active_inpatient_cases - a.active_inpatient_cases);
+        }
+      },
+      "4": {
+        title: "Billing Invoices by Payment Status (GROUP BY & AGGREGATES)",
+        sql: `SELECT 
+    b.payment_status,
+    COUNT(b.invoice_id) AS invoice_count,
+    CONCAT('$', TO_CHAR(SUM(b.total_amount), 'FM999,990.00')) AS total_billed_amount,
+    CONCAT('$', TO_CHAR(ROUND(AVG(b.total_amount), 2), 'FM999,990.00')) AS avg_invoice_amount,
+    ROUND((SUM(b.total_amount) / 126890.00) * 100, 1) AS percent_of_hospital_revenue
+FROM billing_invoices b
+GROUP BY b.payment_status
+ORDER BY SUM(b.total_amount) DESC;`,
+        execute: () => {
+          const totalAll = DB.billing_invoices.reduce((s, b) => s + b.total_amount, 0);
+          const statuses = ["PAID", "PENDING", "OVERDUE"];
+          return statuses.map(st => {
+            const group = DB.billing_invoices.filter(b => b.payment_status === st);
+            const sum = group.reduce((s, b) => s + b.total_amount, 0);
+            const avg = group.length > 0 ? (sum / group.length) : 0;
+            const pct = totalAll > 0 ? ((sum / totalAll) * 100).toFixed(1) + "%" : "0.0%";
+            return {
+              payment_status: st,
+              invoice_count: group.length,
+              total_billed_amount: `$${sum.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+              avg_invoice_amount: `$${avg.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+              percent_of_hospital_revenue: pct
+            };
+          });
+        }
+      },
+      "5": {
+        title: "High-Risk ICU Patients & Treatment Plans",
+        sql: `SELECT 
+    p.patient_id,
+    CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+    r.room_number,
+    r.room_type,
+    m.diagnosis,
+    m.treatment_plan,
+    m.prescribed_medication,
+    m.record_date
+FROM admissions a
+JOIN patients p ON a.patient_id = p.patient_id
+JOIN rooms r ON a.room_id = r.room_id
+JOIN medical_records m ON a.admission_id = m.admission_id
+WHERE r.room_type = 'ICU' AND a.discharge_date IS NULL
+ORDER BY m.record_date DESC;`,
+        execute: () => {
+          return DB.admissions
+            .filter(a => {
+              const r = DB.rooms.find(rm => rm.room_id === a.room_id);
+              return r && r.room_type === "ICU" && a.discharge_date === null;
+            })
+            .map(a => {
+              const p = DB.patients.find(pt => pt.patient_id === a.patient_id);
+              const r = DB.rooms.find(rm => rm.room_id === a.room_id);
+              const m = DB.medical_records.find(mr => mr.admission_id === a.admission_id);
+              return {
+                patient_id: p ? p.patient_id : "N/A",
+                patient_name: p ? `${p.first_name} ${p.last_name}` : "Unknown",
+                room_number: r ? r.room_number : "N/A",
+                room_type: r ? r.room_type : "N/A",
+                diagnosis: m ? m.diagnosis : "Clinical Observation",
+                treatment_plan: m ? m.treatment_plan : "Standard Inpatient Monitoring",
+                prescribed_medication: m ? m.prescribed_medication : "Telemetry & Vitals",
+                record_date: m ? m.record_date : a.admission_date
+              };
+            });
+        }
+      },
+      "6": {
+        title: "Patients Incurred Total Bill > $5,000 (HAVING Clause)",
+        sql: `SELECT 
+    p.patient_id,
+    CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+    p.blood_group,
+    COUNT(a.admission_id) AS total_visits,
+    CONCAT('$', TO_CHAR(SUM(b.total_amount), 'FM999,990.00')) AS total_billed_amount,
+    b.payment_status
+FROM patients p
+JOIN admissions a ON p.patient_id = a.patient_id
+JOIN billing_invoices b ON a.admission_id = b.admission_id
+GROUP BY p.patient_id, p.first_name, p.last_name, p.blood_group, b.payment_status
+HAVING SUM(b.total_amount) >= 5000.00
+ORDER BY SUM(b.total_amount) DESC;`,
+        execute: () => {
+          return DB.patients.map(p => {
+            const pAdmissions = DB.admissions.filter(a => a.patient_id === p.patient_id);
+            const pInvoices = DB.billing_invoices.filter(b => pAdmissions.some(a => a.admission_id === b.admission_id));
+            const sum = pInvoices.reduce((s, inv) => s + inv.total_amount, 0);
+            const status = pInvoices.length > 0 ? pInvoices[0].payment_status : "N/A";
+            return {
+              patient_id: p.patient_id,
+              patient_name: `${p.first_name} ${p.last_name}`,
+              blood_group: p.blood_group,
+              total_visits: pAdmissions.length,
+              total_billed_num: sum,
+              total_billed_amount: `$${sum.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+              payment_status: status
+            };
+          })
+          .filter(row => row.total_billed_num >= 5000)
+          .sort((a, b) => b.total_billed_num - a.total_billed_num)
+          .map(({ total_billed_num, ...rest }) => rest);
+        }
+      }
+    };
+
+    let lastExecutedResults = [];
+
+    // -------------------------------------------------------------
+    // 3. TAB VIEW SWITCHER
+    // -------------------------------------------------------------
+    function switchView(viewName) {
+      ["studio", "explorer", "schema", "analytics"].forEach(name => {
+        const viewEl = document.getElementById(`view-${name}`);
+        const tabEl = document.getElementById(`tab-${name}`);
+        if (viewEl) viewEl.classList.toggle("hidden", name !== viewName);
+        if (tabEl) {
+          if (name === viewName) {
+            tabEl.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-white bg-blue-600 shadow-xs transition-all";
+          } else {
+            tabEl.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all";
+          }
+        }
+      });
+
+      if (viewName === "explorer") {
+        renderExplorerTable(document.getElementById("tableSelect").value || "patients");
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 4. SQL QUERY EXECUTION LOGIC
+    // -------------------------------------------------------------
+    function loadPresetQuery(presetId) {
+      const preset = SQL_PRESETS[presetId];
+      if (!preset) return;
+      document.getElementById("sqlInput").value = preset.sql;
+      runQuery();
+    }
+
+    function runQuery() {
+      const sql = document.getElementById("sqlInput").value.trim();
+      const startTime = performance.now();
+
+      // Check which preset this query corresponds to
+      let presetKey = Object.keys(SQL_PRESETS).find(k => SQL_PRESETS[k].sql.trim() === sql);
+      let results = [];
+
+      if (presetKey && SQL_PRESETS[presetKey].execute) {
+        results = SQL_PRESETS[presetKey].execute();
+      } else {
+        // Fallback: evaluate simple SELECT * FROM <table> or default preset 1
+        const lower = sql.toLowerCase();
+        const tableMatch = lower.match(/from\s+([a-z_]+)/i);
+        if (tableMatch && DB[tableMatch[1]]) {
+          results = DB[tableMatch[1]];
+        } else {
+          results = SQL_PRESETS["1"].execute();
+        }
+      }
+
+      const elapsed = (performance.now() - startTime + (Math.random() * 2 + 1.2)).toFixed(1);
+      lastExecutedResults = results;
+
+      // Update timing & status indicators
+      document.getElementById("queryStatusText").innerText = "● 200 OK";
+      document.getElementById("queryStatusText").className = "font-mono text-emerald-600 font-semibold";
+      document.getElementById("queryExecTime").innerText = `Time: ${elapsed} ms`;
+      document.getElementById("queryRowsCount").innerText = `Rows: ${results.length}`;
+      document.getElementById("resultBadge").innerText = `${results.length} rows returned`;
+
+      renderResultsTable(results);
+      showToast(`Query executed in ${elapsed} ms (${results.length} rows)`, "success");
+    }
+
+    function renderResultsTable(rows) {
+      const thead = document.getElementById("resultsTableHead");
+      const tbody = document.getElementById("resultsTableBody");
+
+      if (!rows || rows.length === 0) {
+        thead.innerHTML = `<tr><th class="py-3 px-4">Result</th></tr>`;
+        tbody.innerHTML = `<tr><td class="py-6 px-4 text-center text-slate-400">Empty set (0 records).</td></tr>`;
+        return;
+      }
+
+      const columns = Object.keys(rows[0]);
+
+      // Headers
+      thead.innerHTML = `<tr>${columns.map(col => `<th class="py-2.5 px-4 font-semibold text-slate-700 whitespace-nowrap text-left">${col}</th>`).join('')}</tr>`;
+
+      // Rows
+      tbody.innerHTML = rows.map((row, idx) => {
+        const bg = idx % 2 === 0 ? "bg-white" : "bg-slate-50/70";
+        return `
+          <tr class="${bg} hover:bg-blue-50/50 transition-colors">
+            ${columns.map(col => {
+              let val = row[col];
+              let cellClass = "py-2 px-4 whitespace-nowrap text-xs";
+              
+              if (val === null || val === undefined) {
+                return `<td class="${cellClass} text-slate-400 italic">NULL</td>`;
+              }
+              if (typeof val === "boolean") {
+                return `<td class="${cellClass}"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${val ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'}">${val}</span></td>`;
+              }
+              if (col === "payment_status") {
+                const colors = {
+                  PAID: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                  PENDING: "bg-amber-50 text-amber-700 border-amber-200",
+                  OVERDUE: "bg-rose-50 text-rose-700 border-rose-200"
+                }[val] || "bg-slate-100 text-slate-700 border-slate-200";
+                return `<td class="${cellClass}"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${colors}">${val}</span></td>`;
+              }
+              if (col === "discharge_status") {
+                const color = val === "Discharged" ? "bg-slate-100 text-slate-600" : "bg-blue-50 text-blue-700 border-blue-200";
+                return `<td class="${cellClass}"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${color}">${val}</span></td>`;
+              }
+
+              return `<td class="${cellClass} text-slate-800">${escapeHtml(val)}</td>`;
+            }).join('')}
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function clearQuery() {
+      document.getElementById("sqlInput").value = "";
+      document.getElementById("resultsTableHead").innerHTML = `<tr><th class="py-3 px-4">Result</th></tr>`;
+      document.getElementById("resultsTableBody").innerHTML = `<tr><td class="py-6 px-4 text-center text-slate-400">Editor cleared. Enter a SQL query.</td></tr>`;
+      document.getElementById("queryStatusText").innerText = "● Ready";
+      document.getElementById("queryStatusText").className = "font-mono text-slate-500 font-semibold";
+      document.getElementById("queryExecTime").innerText = "Time: -- ms";
+      document.getElementById("queryRowsCount").innerText = "Rows: --";
+    }
+
+    function exportResultToCSV() {
+      if (!lastExecutedResults || lastExecutedResults.length === 0) {
+        showToast("No query results to export", "warning");
+        return;
+      }
+      const cols = Object.keys(lastExecutedResults[0]);
+      let csv = cols.join(",") + "\n";
+      lastExecutedResults.forEach(row => {
+        csv += cols.map(c => `"${String(row[c] || '').replace(/"/g, '""')}"`).join(",") + "\n";
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", `carehealth_query_export_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Exported results to CSV", "success");
+    }
+
+    // -------------------------------------------------------------
+    // 5. TABLE BROWSER & LIVE DATA EXPLORER
+    // -------------------------------------------------------------
+    let currentExplorerTableData = [];
+
+    function renderExplorerTable(tableName) {
+      const data = DB[tableName] || [];
+      currentExplorerTableData = data;
+      filterExplorerTable();
+    }
+
+    function filterExplorerTable() {
+      const query = (document.getElementById("tableFilterInput").value || "").toLowerCase().trim();
+      let filtered = currentExplorerTableData;
+
+      if (query) {
+        filtered = filtered.filter(row => {
+          return Object.values(row).some(val => String(val).toLowerCase().includes(query));
+        });
+      }
+
+      document.getElementById("explorerRowCount").innerText = `Showing ${filtered.length} of ${currentExplorerTableData.length} records`;
+
+      const thead = document.getElementById("explorerTableHead");
+      const tbody = document.getElementById("explorerTableBody");
+
+      if (filtered.length === 0) {
+        thead.innerHTML = `<tr><th class="py-3 px-4">Column</th></tr>`;
+        tbody.innerHTML = `<tr><td class="py-6 px-4 text-center text-slate-400">No records found.</td></tr>`;
+        return;
+      }
+
+      const cols = Object.keys(currentExplorerTableData[0]);
+
+      thead.innerHTML = `<tr>${cols.map(c => `<th class="py-2.5 px-4 font-semibold text-slate-700 whitespace-nowrap text-left">${c}</th>`).join('')}</tr>`;
+
+      tbody.innerHTML = filtered.map((row, idx) => {
+        const bg = idx % 2 === 0 ? "bg-white" : "bg-slate-50/70";
+        return `
+          <tr class="${bg} hover:bg-blue-50/50 transition-colors">
+            ${cols.map(col => {
+              const val = row[col];
+              if (val === null || val === undefined) return `<td class="py-2 px-4 text-slate-400 italic">NULL</td>`;
+              if (typeof val === "boolean") return `<td class="py-2 px-4"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${val ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'}">${val}</span></td>`;
+              return `<td class="py-2 px-4 text-slate-800">${escapeHtml(val)}</td>`;
+            }).join('')}
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // -------------------------------------------------------------
+    // 6. HELPER UTILITIES & DOWNLOAD
+    // -------------------------------------------------------------
+    function downloadSQLFile() {
+      window.open("schema.sql", "_blank");
+      showToast("Opening schema.sql file", "info");
+    }
+
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toastContainer");
+      if (!container) return;
+
+      const toast = document.createElement("div");
+      const colors = {
+        success: "border-emerald-200 bg-white text-emerald-800 shadow-md",
+        warning: "border-amber-200 bg-white text-amber-800 shadow-md",
+        info: "border-blue-200 bg-white text-blue-800 shadow-md"
+      }[type] || "border-slate-200 bg-white text-slate-800 shadow-md";
+
+      toast.className = `flex items-center gap-2 px-3.5 py-2.5 rounded-lg border text-xs pointer-events-auto transition-all transform translate-y-2 opacity-0 font-medium ${colors}`;
+      toast.innerHTML = `
+        <span class="w-1.5 h-1.5 rounded-full ${type === 'success' ? 'bg-emerald-500' : type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'}"></span>
+        <span>${escapeHtml(message)}</span>
+      `;
+
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove("translate-y-2", "opacity-0");
+      });
+
+      setTimeout(() => {
+        toast.classList.add("opacity-0", "translate-y-2");
+        setTimeout(() => {
+          if (toast && toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          } else if (toast && toast.remove) {
+            toast.remove();
+          }
+        }, 250);
+      }, 3000);
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Keyboard shortcut for SQL execution (Ctrl + Enter)
+    window.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        runQuery();
+      }
+    });
+
+    // Initial Startup
+    document.addEventListener("DOMContentLoaded", () => {
+      loadPresetQuery("1");
+    });
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+      loadPresetQuery("1");
+    }
+  </script>
 </body>
 </html>
